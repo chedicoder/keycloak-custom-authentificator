@@ -37,15 +37,17 @@ public class EmailOtpAuthenticator implements Authenticator {
             context.getSession().getProvider(org.keycloak.email.EmailTemplateProvider.class)
                 .setRealm(context.getRealm())
                 .setUser(user)
-                .send("Your OTP Code", "otp-email.ftl", vars);
+                .send("Your OTP Code", "email-otp.ftl", vars);
 
 
         } catch (EmailException e) {
+            e.printStackTrace();
             context.failureChallenge(AuthenticationFlowError.INTERNAL_ERROR,
                     context.form().setError("Failed to send OTP email").createErrorPage(Response.Status.INTERNAL_SERVER_ERROR));
             return;
         }
-
+        
+        // La page HTML affichée par keycloak pour saisir le OTP 
         Response challenge = context.form().createForm("email-otp-form.ftl");
         context.challenge(challenge);
     }
@@ -58,7 +60,7 @@ public class EmailOtpAuthenticator implements Authenticator {
 
         if (System.currentTimeMillis() > expiry) {
             context.failureChallenge(AuthenticationFlowError.EXPIRED_CODE,
-                    context.form().setError("OTP expired").createForm("email-otp-form.ftl"));
+                    context.form().setError("OTP expired").createForm("email-otp.ftl"));
             return;
         }
 
@@ -66,7 +68,7 @@ public class EmailOtpAuthenticator implements Authenticator {
             context.success();
         } else {
             context.failureChallenge(AuthenticationFlowError.INVALID_CREDENTIALS,
-                    context.form().setError("Invalid OTP").createForm("email-otp-form.ftl"));
+                    context.form().setError("Invalid OTP").createForm("email-otp.ftl"));
         }
     }
 
